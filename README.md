@@ -31,7 +31,7 @@ and of every deferred adoption.
 | Block | Preset                                                                | Scope                         |
 | ----- | --------------------------------------------------------------------- | ----------------------------- |
 | 1     | consumer `ignores`                                                    | global                        |
-| 2     | `js.configs.recommended` + tseslint `recommendedTypeChecked`¹         | all files                     |
+| 2     | `js.configs.recommended` + tseslint `strictTypeChecked`¹              | all files                     |
 | 3     | local rules (barrel ban, `no-unused-vars` options) + `projectService` | `srcGlobs`                    |
 | 3     | `import-x` `recommended` + `typescript`                               | `srcGlobs`                    |
 | 3     | `react` + `jsx-a11y` + `react-hooks` recommended                      | `react` globs                 |
@@ -39,8 +39,9 @@ and of every deferred adoption.
 | 5     | `vitest.configs.recommended` / `jest` `flat/recommended`              | `testGlobs`                   |
 | 6     | `disableTypeChecked` + node globals escape hatch                      | `**/*.{js,cjs,mjs}`, configs² |
 
-¹ `strict: true` switches to `strictTypeChecked`; the monorepo-wide default is a
-measured decision recorded in `docs/LINT-RULESET.md`.
+¹ Strict is the measured monorepo-wide decision (see `docs/LINT-RULESET.md`);
+`strict: false` downgrades to `recommendedTypeChecked` and is itself a
+ledger-worthy divergence.
 ² Plus consumer `untypedGlobs`: files outside every tsconfig project. A type-aware rule
 on such a file **aborts the whole run** rather than skipping the file.
 
@@ -56,9 +57,14 @@ presets themselves before their OVERRIDES block.
   eslint 10, so detection crashes the run before any rule executes.
 - **`reactHooks.configs.flat.recommended`, never `.recommended`** — the latter is still
   eslintrc format (`plugins: ["react-hooks"]`) and crashes `extends`.
-- **`importX.flatConfigs.typescript` enables zero rules and is not droppable** — it
-  supplies the resolver, without which `import-x/no-cycle` reports a clean zero on a
-  genuine cycle.
+- **The import resolver is bound here, not looked up from the consumer.**
+  `importX.flatConfigs.typescript` sets the LEGACY `import-x/resolver: {typescript:
+true}`, which resolves `eslint-import-resolver-typescript` from the consumer — where
+  it may be absent (every import reads as unresolved) or an incompatible major
+  ("invalid interface loaded as resolver"). The baseline overrides it with
+  `import-x/resolver-next: [createTypeScriptImportResolver()]`, binding the resolver
+  instance this package ships so resolution cannot vary by consumer. The preset is
+  still extended for its one rule change (`import-x/named` off — TypeScript's job).
 - **`importX.flatConfigs.recommended` sets `sourceType: "module"`** on everything it
   matches, so it stays scoped to `srcGlobs` — at top level it breaks CommonJS tooling
   configs.

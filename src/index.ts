@@ -1,3 +1,12 @@
+/*
+ * Not import-style on purpose: plugin-types.d.ts is an ambient declaration for
+ * the untyped eslint-plugin-jsx-a11y. Consumers compile this file from source,
+ * and only a reference directive carries the declaration into their programs —
+ * an import would need a runtime module jiti cannot resolve, and augmentation
+ * of an untyped module is a TS error.
+ */
+/* eslint-disable-next-line @typescript-eslint/triple-slash-reference */
+/// <reference path="./plugin-types.d.ts" />
 import type {
   ConfigObject,
   ConfigWithExtends,
@@ -5,6 +14,7 @@ import type {
 } from "@eslint/config-helpers";
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import { flatConfigs as importXConfigs } from "eslint-plugin-import-x";
 import jest from "eslint-plugin-jest";
 import jsxA11y from "eslint-plugin-jsx-a11y";
@@ -41,9 +51,10 @@ export interface BaselineOptions {
   /** Extend `storybookConfigs["flat/recommended"]` (scopes itself to stories). */
   storybook?: boolean;
   /**
-   * `strictTypeChecked` instead of `recommendedTypeChecked`. The monorepo-wide
-   * default is decided by measurement (docs/LINT-RULESET.md); acrm already
-   * carries 24 of strict's 25 extra rules.
+   * `strictTypeChecked` (the default) vs `recommendedTypeChecked`. Strict is
+   * the measured monorepo-wide decision (docs/LINT-RULESET.md): consumers
+   * adopt the full surface and triage findings per rule rather than migrating
+   * twice. Opting down is itself a ledger-worthy divergence.
    */
   strict?: boolean;
   /**
@@ -87,7 +98,7 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
     react: reactOption = false,
     tests = false,
     storybook: useStorybook = false,
-    strict = false,
+    strict = true,
     untypedGlobs = [],
   } = options;
   const testGlobs = options.testGlobs ?? DEFAULT_TEST_GLOBS;
@@ -133,6 +144,14 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
         : tseslintConfigs.recommendedTypeChecked,
     ),
 
+    /*
+     * On every file, not just srcGlobs: the tseslint 8.69 parser refuses to
+     * run at all — even with projectService off — when it cannot infer a
+     * unique root ("multiple candidate TSConfigRootDirs"), which is the
+     * steady state in the editor repos once eslint-config nests inside them.
+     */
+    { languageOptions: { parserOptions: { tsconfigRootDir } } },
+
     {
       files: srcGlobs,
       languageOptions: {
@@ -173,6 +192,16 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
         compat(importXConfigs.recommended),
         compat(importXConfigs.typescript),
       ],
+      /*
+       * flatConfigs.typescript sets the LEGACY `import-x/resolver: {typescript:
+       * true}`, which looks the resolver package up from the consumer — where
+       * it may be absent or an incompatible major ("invalid interface loaded
+       * as resolver"). resolver-next takes precedence and binds the resolver
+       * instance this package ships, so resolution cannot vary by consumer.
+       */
+      settings: {
+        "import-x/resolver-next": [createTypeScriptImportResolver()],
+      },
     },
 
     ...(reactBlock ? [reactBlock] : []),
