@@ -1,0 +1,5 @@
+{
+  "name": "smoke-consumer",
+  "type": "module",
+  "private": true
+}

@@ -1,0 +1,212 @@
+import type {
+  ConfigObject,
+  ConfigWithExtends,
+  ExtensionConfigObject,
+} from "@eslint/config-helpers";
+import js from "@eslint/js";
+import vitest from "@vitest/eslint-plugin";
+import { flatConfigs as importXConfigs } from "eslint-plugin-import-x";
+import jest from "eslint-plugin-jest";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import { configs as storybookConfigs } from "eslint-plugin-storybook";
+import { defineConfig } from "eslint/config";
+import globals from "globals";
+import { configs as tseslintConfigs } from "typescript-eslint";
+
+export interface BaselineOptions {
+  /**
+   * The consumer's `__dirname` (or `import.meta.dirname`). Anchors
+   * `projectService` so type-aware rules resolve the right tsconfig.
+   */
+  tsconfigRootDir: string;
+  /** Build outputs and vendored trees; becomes the bare global-ignores block. */
+  ignores?: string[];
+  /**
+   * Globs of the type-aware source tree. Every glob must be covered by a
+   * tsconfig project, or the run aborts. Default: `src/**\/*.{ts,tsx}`.
+   */
+  srcGlobs?: string[];
+  /**
+   * Where React lives. `true` applies the react/jsx-a11y/react-hooks presets
+   * to all of `srcGlobs`; an array scopes them to a subtree (acrm:
+   * `src/admin/**`). `false`/absent skips them.
+   */
+  react?: boolean | string[];
+  /** Test-runner preset, applied to `testGlobs`. Follows the runner in use. */
+  tests?: "vitest" | "jest" | false;
+  /** Test-file globs. Default: `*.{test,spec}.*` plus `__tests__/`. */
+  testGlobs?: string[];
+  /** Extend `storybookConfigs["flat/recommended"]` (scopes itself to stories). */
+  storybook?: boolean;
+  /**
+   * `strictTypeChecked` instead of `recommendedTypeChecked`. The monorepo-wide
+   * default is decided by measurement (docs/LINT-RULESET.md); acrm already
+   * carries 24 of strict's 25 extra rules.
+   */
+  strict?: boolean;
+  /**
+   * Files outside every tsconfig project, added to the escape-hatch block. A
+   * type-aware rule on such a file aborts the whole run rather than skipping
+   * the file — that is the mechanism, not a stylistic choice.
+   */
+  untypedGlobs?: string[];
+}
+
+const DEFAULT_SRC_GLOBS = ["src/**/*.{ts,tsx}"];
+const DEFAULT_TEST_GLOBS = [
+  "**/*.{test,spec}.{ts,tsx}",
+  "**/__tests__/**/*.{ts,tsx}",
+];
+
+/*
+ * Every flat-config plugin compiles its exported configs against a different
+ * eslint typing generation (typescript-eslint's own FlatConfig, storybook's
+ * pre-eslint-10 RuleModule, react's @types/eslint 8), so no common supertype
+ * exists and every cross-package spread fails to typecheck against eslint 10's
+ * `Config`. The runtime shapes are the flat configs eslint executes — resolved
+ * parity is asserted with `eslint --print-config` in CI — so this is the one
+ * sanctioned seam; keep it the only assertion in the package.
+ */
+function compat(config: object | readonly object[]): ExtensionConfigObject[] {
+  return (Array.isArray(config) ? config : [config]) as ExtensionConfigObject[];
+}
+
+/**
+ * The shared baseline: identical rule activation for every consumer. A
+ * consumer's config is `defineConfig([...baseline({...}), { OVERRIDES }])` —
+ * anything it needs to differ on is a trailing override with a stated
+ * mechanism, never a divergent baseline.
+ */
+export function baseline(options: BaselineOptions): ConfigObject[] {
+  const {
+    tsconfigRootDir,
+    ignores = [],
+    srcGlobs = DEFAULT_SRC_GLOBS,
+    react: reactOption = false,
+    tests = false,
+    storybook: useStorybook = false,
+    strict = false,
+    untypedGlobs = [],
+  } = options;
+  const testGlobs = options.testGlobs ?? DEFAULT_TEST_GLOBS;
+  const reactGlobs =
+    reactOption === true
+      ? srcGlobs
+      : reactOption === false
+        ? null
+        : reactOption;
+
+  // Typed as a standalone value: inside the conditional spread below there is
+  // no contextual type, so the "off" literals would widen to `string`.
+  const reactBlock: ConfigWithExtends | null = reactGlobs
+    ? {
+        files: reactGlobs,
+        extends: [
+          compat(react.configs.flat.recommended),
+          compat(jsxA11y.flatConfigs.recommended),
+          compat(reactHooks.configs.flat.recommended),
+        ],
+        /*
+         * Pinned, not "detect": eslint-plugin-react 7.37.5 sniffs the
+         * version via `context.getFilename()`, removed in eslint 10 —
+         * "detect" crashes the whole run before any rule executes.
+         */
+        settings: { react: { version: "19.0.4" } },
+        rules: {
+          // The new JSX transform makes the React import unnecessary, and
+          // props are typed by TypeScript, not declared at runtime.
+          "react/react-in-jsx-scope": "off",
+          "react/prop-types": "off",
+        },
+      }
+    : null;
+
+  return defineConfig([
+    ...(ignores.length > 0 ? [{ ignores }] : []),
+
+    compat(js.configs.recommended),
+    compat(
+      strict
+        ? tseslintConfigs.strictTypeChecked
+        : tseslintConfigs.recommendedTypeChecked,
+    ),
+
+    {
+      files: srcGlobs,
+      languageOptions: {
+        parserOptions: { projectService: true, tsconfigRootDir },
+      },
+      rules: {
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          {
+            argsIgnorePattern: "^_",
+            varsIgnorePattern: "^_",
+            // `const { drop, ...rest } = x` is the idiomatic way to omit a key.
+            ignoreRestSiblings: true,
+          },
+        ],
+        /*
+         * Barrels were removed from these repos deliberately; `export *` is
+         * the construct that reintroduces them, and no stock rule bans it.
+         */
+        "no-restricted-syntax": [
+          "error",
+          {
+            selector: "ExportAllDeclaration",
+            message:
+              "Barrel re-exports are not used in this repo — import from the concrete module instead.",
+          },
+        ],
+        // No bundle here enables these; they are pinned so a wider bundle
+        // later cannot. An inferred return type is not a defect.
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+      },
+    },
+
+    {
+      files: srcGlobs,
+      extends: [
+        compat(importXConfigs.recommended),
+        compat(importXConfigs.typescript),
+      ],
+    },
+
+    ...(reactBlock ? [reactBlock] : []),
+
+    ...(useStorybook ? [compat(storybookConfigs["flat/recommended"])] : []),
+
+    ...(tests === "vitest"
+      ? [{ files: testGlobs, extends: [compat(vitest.configs.recommended)] }]
+      : []),
+    ...(tests === "jest"
+      ? [
+          {
+            files: testGlobs,
+            extends: [compat(jest.configs["flat/recommended"])],
+          },
+        ]
+      : []),
+
+    {
+      files: [
+        "**/*.{js,cjs,mjs}",
+        "eslint.config.ts",
+        "eslint.config.mjs",
+        ...untypedGlobs,
+      ],
+      /*
+       * `disableTypeChecked` carries its own `languageOptions`, so it must be
+       * extended here (merged first) rather than spread after `globals` — the
+       * other order silently drops the node globals.
+       */
+      extends: [compat(tseslintConfigs.disableTypeChecked)],
+      languageOptions: { globals: globals.node },
+      // These are CommonJS tooling configs; `require` is the correct form there.
+      rules: { "@typescript-eslint/no-require-imports": "off" },
+    },
+  ]);
+}
