@@ -188,6 +188,18 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
               "Barrel re-exports are not used in this repo — import from the concrete module instead.",
           },
         ],
+        /*
+         * `ignoreArrowShorthand`: `onClick={() => apply(x)}` is the idiomatic
+         * React handler, and its void return is never mistaken for a value —
+         * 589 of the 595 findings across the seven consumers were that one
+         * shape. What the rule is worth keeping for is the other six:
+         * `return someVoidCall()` in a block body, and a void call placed
+         * inside a larger expression, both of which read as producing a value.
+         */
+        "@typescript-eslint/no-confusing-void-expression": [
+          "error",
+          { ignoreArrowShorthand: true },
+        ],
         // No bundle here enables these; they are pinned so a wider bundle
         // later cannot. An inferred return type is not a defect.
         "@typescript-eslint/explicit-function-return-type": "off",
