@@ -145,6 +145,15 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
     ),
 
     /*
+     * Re-enabled against tseslint's eslintRecommended layer, which turns it
+     * off as the compiler's job. It is not: `allowUnreachableCode` defaults to
+     * undefined, so TS7027 is an editor suggestion and `tsc --noEmit` passes,
+     * and no consumer's tsconfig sets it. Syntactic, so it needs no type
+     * information and covers the untyped escape-hatch files too.
+     */
+    { rules: { "no-unreachable": "error" } },
+
+    /*
      * On every file, not just srcGlobs: the tseslint 8.69 parser refuses to
      * run at all — even with projectService off — when it cannot infer a
      * unique root ("multiple candidate TSConfigRootDirs"), which is the
