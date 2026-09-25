@@ -200,6 +200,26 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
           "error",
           { ignoreArrowShorthand: true },
         ],
+        /*
+         * `allowNumber`: a number stringifies unambiguously, so `${count}` cannot
+         * produce the output this rule exists to prevent. The other five are
+         * spelled out because an options object REPLACES the one
+         * strictTypeChecked set, and this rule's own defaults turn allowAny,
+         * allowBoolean, allowNullish and allowRegExp back on — a nullish value
+         * reaching output as "undefined" is the exact defect being guarded
+         * against, so each of those needs an explicit conversion at the site.
+         */
+        "@typescript-eslint/restrict-template-expressions": [
+          "error",
+          {
+            allowNumber: true,
+            allowAny: false,
+            allowBoolean: false,
+            allowNever: false,
+            allowNullish: false,
+            allowRegExp: false,
+          },
+        ],
         // No bundle here enables these; they are pinned so a wider bundle
         // later cannot. An inferred return type is not a defect.
         "@typescript-eslint/explicit-function-return-type": "off",
