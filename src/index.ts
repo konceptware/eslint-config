@@ -109,6 +109,18 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
         ? null
         : reactOption;
 
+  /*
+   * Shared between the srcGlobs block and reactBlock: eslint replaces (never
+   * merges) a rule's options, and reactBlock comes later in the config array,
+   * so its no-restricted-syntax must carry this entry too or react files
+   * would lose the barrel ban.
+   */
+  const exportAllBan = {
+    selector: "ExportAllDeclaration",
+    message:
+      "Barrel re-exports are not used in this repo — import from the concrete module instead.",
+  };
+
   // Typed as a standalone value: inside the conditional spread below there is
   // no contextual type, so the "off" literals would widen to `string`.
   const reactBlock: ConfigWithExtends | null = reactGlobs
@@ -130,6 +142,34 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
           // props are typed by TypeScript, not declared at runtime.
           "react/react-in-jsx-scope": "off",
           "react/prop-types": "off",
+          /*
+           * React 19 passes `ref` as a plain prop, and the repos migrated all
+           * production forwardRef call sites; the wrapper only re-adds the
+           * (props, ref) split and displayName boilerplate. Both spellings are
+           * banned: the named import via a syntax selector (not
+           * no-restricted-imports with importNames, which also flags every
+           * `import * as React` namespace import), and the React.forwardRef
+           * member via no-restricted-properties.
+           */
+          "no-restricted-syntax": [
+            "error",
+            exportAllBan,
+            {
+              selector:
+                'ImportDeclaration[source.value="react"] ImportSpecifier[imported.name="forwardRef"]',
+              message:
+                "React 19: take `ref` as a regular prop instead of wrapping in forwardRef.",
+            },
+          ],
+          "no-restricted-properties": [
+            "error",
+            {
+              object: "React",
+              property: "forwardRef",
+              message:
+                "React 19: take `ref` as a regular prop instead of wrapping in forwardRef.",
+            },
+          ],
         },
       }
     : null;
@@ -180,14 +220,7 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
          * Barrels were removed from these repos deliberately; `export *` is
          * the construct that reintroduces them, and no stock rule bans it.
          */
-        "no-restricted-syntax": [
-          "error",
-          {
-            selector: "ExportAllDeclaration",
-            message:
-              "Barrel re-exports are not used in this repo — import from the concrete module instead.",
-          },
-        ],
+        "no-restricted-syntax": ["error", exportAllBan],
         /*
          * `ignoreArrowShorthand`: `onClick={() => apply(x)}` is the idiomatic
          * React handler, and its void return is never mistaken for a value —
