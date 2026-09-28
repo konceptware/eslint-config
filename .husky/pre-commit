@@ -1,0 +1,33 @@
+#!/bin/sh
+# Formats staged files with prettier — the gate the monorepo's own pre-commit
+# provides and this repo cannot inherit: git does not pass core.hooksPath into a
+# submodule, so a commit made here runs no superproject hook, and the acrm-side
+# commit stages only a gitlink, which lint-staged sees as no files at all
+# (real-acrm/store#339).
+set -e
+
+staged() { git diff --cached --name-only --diff-filter=ACMR -z; }
+[ -z "$(staged | tr -d '\0')" ] && exit 0
+
+# Walked up rather than assumed at ./node_modules: inside an acrm checkout this
+# repo is a submodule whose own dependencies may not be installed (ksef must not
+# have them at all — a second @medusajs/core-flows breaks `medusa exec`), and
+# `pnpm exec` does not fall back to the superproject's store from a nested
+# workspace root.
+prettier=""
+dir=$(pwd)
+while [ "$dir" != "/" ]; do
+  if [ -x "$dir/node_modules/.bin/prettier" ]; then
+    prettier="$dir/node_modules/.bin/prettier"
+    break
+  fi
+  dir=$(dirname "$dir")
+done
+
+if [ -z "$prettier" ]; then
+  echo "pre-commit: no prettier found in ./node_modules or any parent — run pnpm install" >&2
+  exit 1
+fi
+
+staged | xargs -0 -- "$prettier" --ignore-unknown --write
+staged | xargs -0 -- git add
