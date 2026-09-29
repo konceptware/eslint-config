@@ -283,7 +283,38 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
     ...(useStorybook ? [compat(storybookConfigs["flat/recommended"])] : []),
 
     ...(tests === "vitest"
-      ? [{ files: testGlobs, extends: [compat(vitest.configs.recommended)] }]
+      ? [
+          {
+            files: testGlobs,
+            extends: [compat(vitest.configs.recommended)],
+            rules: {
+              /* Two of the recommended set's defaults are inherited from
+                 eslint-plugin-jest and contradict vitest's own API. Neither
+                 line relaxes the rule: a three-argument `expect` and a test
+                 with no assertion at all both still fail.
+
+                 `valid-expect` hard-codes `maxArgs: 1` (@vitest/eslint-plugin
+                 1.6.27, dist/index.mjs:6748), but vitest declares
+                 `<T>(actual: T, message?: string): Assertion<T>`
+                 (@vitest/expect 3.2.x, dist/index.d.ts:166) — the second
+                 argument is the failure label a table-driven loop needs to
+                 say which case broke.
+
+                 `expect-expect` treats only `expect`/`assert` as assertions
+                 (same file, :2286), so a test asserting through a named
+                 helper reads as empty. The rule globs each entry through
+                 `buildPatternRegexp` (:2330), so `expect*` covers the
+                 `expectColor`-style helpers without naming each one.
+
+                 Recheck by bumping the plugin and re-reading those lines. */
+              "vitest/valid-expect": ["error", { maxArgs: 2 }],
+              "vitest/expect-expect": [
+                "error",
+                { assertFunctionNames: ["expect*", "assert"] },
+              ],
+            },
+          } satisfies ConfigWithExtends,
+        ]
       : []),
     ...(tests === "jest"
       ? [
