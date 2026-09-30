@@ -80,7 +80,15 @@ const DEFAULT_TEST_GLOBS = [
  * parity is asserted with `eslint --print-config` in CI — so this is the one
  * sanctioned seam; keep it the only assertion in the package.
  */
-function compat(config: object | readonly object[]): ExtensionConfigObject[] {
+function compat(
+  config: object | readonly object[] | undefined,
+  preset: string,
+): ExtensionConfigObject[] {
+  /* Every caller reads a named preset off a plugin's config record, so under
+     `noUncheckedIndexedAccess` the read is `| undefined` — and a plugin that
+     renames or drops a preset would otherwise spread `undefined` into the
+     config array and fail far from the cause. */
+  if (!config) throw new Error(`eslint preset ${preset} is not available`);
   return (Array.isArray(config) ? config : [config]) as ExtensionConfigObject[];
 }
 
@@ -127,9 +135,12 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
     ? {
         files: reactGlobs,
         extends: [
-          compat(react.configs.flat.recommended),
-          compat(jsxA11y.flatConfigs.recommended),
-          compat(reactHooks.configs.flat.recommended),
+          compat(react.configs.flat.recommended, "react/flat/recommended"),
+          compat(jsxA11y.flatConfigs.recommended, "jsx-a11y/flat/recommended"),
+          compat(
+            reactHooks.configs.flat.recommended,
+            "react-hooks/flat/recommended",
+          ),
         ],
         /*
          * Pinned, not "detect": eslint-plugin-react 7.37.5 sniffs the
@@ -177,11 +188,14 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
   return defineConfig([
     ...(ignores.length > 0 ? [{ ignores }] : []),
 
-    compat(js.configs.recommended),
+    compat(js.configs.recommended, "@eslint/js recommended"),
     compat(
       strict
         ? tseslintConfigs.strictTypeChecked
         : tseslintConfigs.recommendedTypeChecked,
+      strict
+        ? "typescript-eslint/strictTypeChecked"
+        : "typescript-eslint/recommendedTypeChecked",
     ),
 
     /*
@@ -263,8 +277,8 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
     {
       files: srcGlobs,
       extends: [
-        compat(importXConfigs.recommended),
-        compat(importXConfigs.typescript),
+        compat(importXConfigs.recommended, "import-x/recommended"),
+        compat(importXConfigs.typescript, "import-x/typescript"),
       ],
       /*
        * flatConfigs.typescript sets the LEGACY `import-x/resolver: {typescript:
@@ -280,13 +294,20 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
 
     ...(reactBlock ? [reactBlock] : []),
 
-    ...(useStorybook ? [compat(storybookConfigs["flat/recommended"])] : []),
+    ...(useStorybook
+      ? [
+          compat(
+            storybookConfigs["flat/recommended"],
+            "storybook/flat/recommended",
+          ),
+        ]
+      : []),
 
     ...(tests === "vitest"
       ? [
           {
             files: testGlobs,
-            extends: [compat(vitest.configs.recommended)],
+            extends: [compat(vitest.configs.recommended, "vitest/recommended")],
             rules: {
               /* Two of the recommended set's defaults are inherited from
                  eslint-plugin-jest and contradict vitest's own API. Neither
@@ -320,7 +341,9 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
       ? [
           {
             files: testGlobs,
-            extends: [compat(jest.configs["flat/recommended"])],
+            extends: [
+              compat(jest.configs["flat/recommended"], "jest/flat/recommended"),
+            ],
           },
         ]
       : []),
@@ -337,7 +360,12 @@ export function baseline(options: BaselineOptions): ConfigObject[] {
        * extended here (merged first) rather than spread after `globals` — the
        * other order silently drops the node globals.
        */
-      extends: [compat(tseslintConfigs.disableTypeChecked)],
+      extends: [
+        compat(
+          tseslintConfigs.disableTypeChecked,
+          "typescript-eslint/disableTypeChecked",
+        ),
+      ],
       languageOptions: { globals: globals.node },
       // These are CommonJS tooling configs; `require` is the correct form there.
       rules: { "@typescript-eslint/no-require-imports": "off" },
