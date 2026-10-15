@@ -1,9 +1,9 @@
-# @real-acrm/eslint-config
+# @konceptware/eslint-config
 
-The shared ESLint baseline for every real-acrm package. A consumer's whole config is:
+The shared ESLint baseline for every konceptware package. A consumer's whole config is:
 
 ```ts
-import { baseline } from "@real-acrm/eslint-config";
+import { baseline } from "@konceptware/eslint-config";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([

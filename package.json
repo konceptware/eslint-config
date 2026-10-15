@@ -1,8 +1,8 @@
 {
-  "name": "@real-acrm/eslint-config",
+  "name": "@konceptware/eslint-config",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared ESLint baseline for every real-acrm package. Consumers call baseline() and append only their override ledger.",
+  "description": "Shared ESLint baseline for every konceptware package. Consumers call baseline() and append only their override ledger.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"

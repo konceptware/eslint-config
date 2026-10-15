@@ -1,4 +1,4 @@
-import { baseline } from "@real-acrm/eslint-config";
+import { baseline } from "@konceptware/eslint-config";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([

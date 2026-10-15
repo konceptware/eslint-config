@@ -3,7 +3,7 @@
 # provides and this repo cannot inherit: git does not pass core.hooksPath into a
 # submodule, so a commit made here runs no superproject hook, and the acrm-side
 # commit stages only a gitlink, which lint-staged sees as no files at all
-# (real-acrm/store#339).
+# (konceptware/store#339).
 set -e
 
 staged() { git diff --cached --name-only --diff-filter=ACMR -z; }
