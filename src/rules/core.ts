@@ -45,7 +45,11 @@ export const coreRules: Linter.RulesRecord = {
   'consistent-this': 'off',
   // Reported by tsc.
   'constructor-super': 'off',
-  curly: ['error', 'multi-line', 'consistent'],
+  /*
+   * A single one-line statement stays bare wherever it sits; braces mark a body of several
+   * statements or one that wraps, and `consistent` makes every clause of a chain match.
+   */
+  curly: ['error', 'multi-or-nest', 'consistent'],
   /*
    * Replaced by `@typescript-eslint/switch-exhaustiveness-check`; a forced `default` would swallow
    * union members added later.
@@ -185,11 +189,11 @@ export const coreRules: Linter.RulesRecord = {
   'no-implied-eval': 'off',
   // Reported by tsc.
   'no-import-assign': 'off',
-  'no-inline-comments': [
-    'error',
-    // Bundler annotations only work inline.
-    { ignorePattern: String.raw`^\s*([@#]__PURE__|webpack\w+:|@vite-ignore)` },
-  ],
+  /*
+   * A trailing `// why` on a parameter or object key explains that one line; moving it above
+   * detaches it from its referent and costs a line for nothing.
+   */
+  'no-inline-comments': 'off',
   // In strict-mode code a function declared in a block is block-scoped, and `no-var` bans `var`.
   'no-inner-declarations': 'off',
   'no-invalid-regexp': ['error', {}],

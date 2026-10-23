@@ -12,9 +12,10 @@ import vitest from '../src/vitest.ts'
 
 /*
  * eslint-config-prettier lists these as needing care rather than always conflicting.
- * `curly: multi-line` depends on where Prettier breaks lines, but the two converge: when
+ * `curly: multi-or-nest` depends on where Prettier breaks lines, but the two converge: when
  * Prettier wraps a one-statement body, `eslint --fix` adds braces and the next Prettier
- * run keeps them. `no-unexpected-multiline` only flags code Prettier would never produce.
+ * run keeps them; a bare one-liner stays one line whether Prettier keeps it beside the
+ * condition or moves it below. `no-unexpected-multiline` only flags code Prettier would never produce.
  */
 const PRETTIER_SAFE = new Set(['curly', 'no-unexpected-multiline'])
 

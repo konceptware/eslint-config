@@ -48,10 +48,13 @@ describeRules(base, 'src/lint-text.ts', [
     invalid: [
       'declare const x: boolean\ndeclare function g(...a: number[]): void\nif (x)\n  g(\n    1,\n  )\n',
       'declare const x: boolean\nif (x) {\n  console.info(1)\n  console.info(2)\n} else console.info(3)\n',
+      'declare const x: boolean\nif (x) {\n  console.info(1)\n}\n',
     ],
     valid: [
       'declare const x: boolean\nif (x) console.info(1)\n',
-      'declare const x: boolean\nif (x) {\n  console.info(1)\n}\n',
+      'declare const x: boolean\nif (x)\n  console.info(1)\n',
+      'declare const x: boolean\nif (x) console.info(1)\nelse if (!x) console.info(2)\nelse console.info(3)\n',
+      'declare const x: boolean\nif (x) {\n  console.info(1)\n} else {\n  console.info(2)\n  console.info(3)\n}\n',
     ],
   },
   {
@@ -429,18 +432,6 @@ describeRules(base, 'src/lint-text.ts', [
     rule: 'no-implicit-globals',
     invalid: [],
     valid: ['var a = 1\nfunction b() {\n  return a\n}\nexport { b }\n'],
-  },
-  {
-    rule: 'no-inline-comments',
-    invalid: [
-      'export const a = 1 /* note */\n',
-      'declare function f(x: boolean): void\nf(/* force */ true)\n',
-    ],
-    valid: [
-      'export const a = /* @__PURE__ */ Object.freeze({})\n',
-      "export const m = import(/* webpackChunkName: 'm' */ './non-null.ts')\n",
-      'console.info(1) // eslint-disable-line no-console -- reason\n',
-    ],
   },
   {
     rule: 'no-invalid-regexp',

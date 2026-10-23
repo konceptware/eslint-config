@@ -27,15 +27,6 @@ describeRules(base, 'src/lint-text.ts', [
     ],
   },
   {
-    rule: 'no-inline-comments',
-    invalid: [
-      'export const a = 1 // why\n',
-      'export const a = 1 /* why */\n',
-      'export function f(x: number) {\n  return x\n}\nf(/* count */ 1)\n',
-    ],
-    valid: [...SCOPE_GLOB_JSDOC, 'console.log(1) // eslint-disable-line no-console -- reason\n'],
-  },
-  {
     rule: '@stylistic/spaced-comment',
     invalid: ['//no space\nexport const a = 1\n', '/* unbalanced*/\nexport const a = 1\n'],
     valid: ['/// <reference types="node" />\nexport const a = 1\n'],

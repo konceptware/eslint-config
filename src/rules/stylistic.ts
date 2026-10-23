@@ -19,7 +19,7 @@ export const stylisticRules: Linter.RulesRecord = {
     // `markers: ['/']` keeps `/// <reference …>` directives valid.
     { line: { markers: ['/'] }, block: { balanced: true } },
   ],
-  // `no-inline-comments` already reports every trailing `//` comment this rule would.
+  // Trailing `//` comments are allowed; see `no-inline-comments`.
   '@stylistic/line-comment-position': 'off',
   '@stylistic/lines-between-class-members': [
     'error',
