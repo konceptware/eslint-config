@@ -89,8 +89,15 @@ export const reactRules: Linter.RulesRecord = {
   '@eslint-react/no-clone-element': 'error',
   // Type-aware, like `no-implicit-key`: a spread `children` typed `ReactNode` is deliberate.
   '@eslint-react/no-implicit-children': 'error',
-  // Type-aware, like `no-implicit-key`: a spread `ref` typed `Ref` is deliberate.
-  '@eslint-react/no-implicit-ref': 'error',
+  /*
+   * TODO(https://github.com/konceptware/eslint-config/issues/1): replace with a target-aware
+   * local rule. The upstream rule reports any spread whose type has a `ref` not typed with one
+   * of React's own ref types and never checks whether the receiving component accepts a ref, so
+   * `<Input {...field} />` with React Hook Form's `RefCallBack` is reported on every React
+   * version while the only real bug, a ref dropped by a plain React 18 function component,
+   * cannot be told apart from it.
+   */
+  '@eslint-react/no-implicit-ref': 'off',
   '@eslint-react/jsx-no-children-prop': 'error',
   '@eslint-react/jsx-no-children-prop-with-children': 'error',
   '@eslint-react/jsx-no-comment-textnodes': 'error',

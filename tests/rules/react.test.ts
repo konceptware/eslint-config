@@ -475,15 +475,6 @@ describeRules(config, 'src/lint-jsx.tsx', [
     ],
   },
   {
-    rule: '@eslint-react/no-implicit-ref',
-    invalid: [
-      'declare function Field(props: { name: string }): null\n\nexport function Form({ field }: { field: { ref: string; name: string } }) {\n  return <Field {...field} />\n}\n',
-    ],
-    valid: [
-      'import type { ComponentProps } from "react"\n\nexport function Field(props: ComponentProps<"input">) {\n  return <input {...props} />\n}\n',
-    ],
-  },
-  {
     rule: '@eslint-react/jsx-no-children-prop',
     invalid: [
       'declare function Card(props: { children: string }): null\n\nexport function A() {\n  return <Card children="x" />\n}\n',
