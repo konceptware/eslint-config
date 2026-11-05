@@ -8,6 +8,7 @@ export default defineConfig({
     'src/jest.ts',
     'src/playwright.ts',
     'src/react.ts',
+    'src/stylelint.ts',
   ],
   format: 'esm',
   platform: 'node',

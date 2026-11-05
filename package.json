@@ -1,7 +1,7 @@
 {
   "name": "@konceptware/eslint-config",
   "version": "0.3.0",
-  "description": "Konceptware's shared ESLint flat configs: prod, test, vitest, jest, playwright, react.",
+  "description": "Konceptware's shared ESLint flat configs: prod, test, vitest, jest, playwright, react; plus a stylelint config.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -47,6 +47,11 @@
       "import": "./dist/react.mjs",
       "default": "./dist/react.mjs"
     },
+    "./stylelint": {
+      "types": "./dist/stylelint.d.mts",
+      "import": "./dist/stylelint.mjs",
+      "default": "./dist/stylelint.mjs"
+    },
     "./package.json": "./package.json"
   },
   "engines": {
@@ -78,6 +83,7 @@
     "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "eslint-plugin-playwright": "^2.12.0",
     "eslint-plugin-react-hooks": "^7.1.0",
+    "stylelint": "^16.0.0 || ^17.0.0 || ^18.0.0",
     "typescript": ">=5.0.0 <6.1.0"
   },
   "peerDependenciesMeta": {
@@ -97,6 +103,9 @@
       "optional": true
     },
     "eslint-plugin-jsx-a11y-x": {
+      "optional": true
+    },
+    "stylelint": {
       "optional": true
     }
   },
@@ -126,6 +135,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "jiti": "^2.7.0",
     "prettier": "^3.9.10",
+    "stylelint": "^18.0.0",
     "tsdown": "^0.23.1",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
