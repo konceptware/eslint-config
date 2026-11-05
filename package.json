@@ -1,6 +1,6 @@
 {
   "name": "@konceptware/eslint-config",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Konceptware's shared ESLint flat configs: prod, test, vitest, jest, playwright, react, storybook; plus a stylelint config.",
   "license": "MIT",
   "repository": {
