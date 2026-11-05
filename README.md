@@ -23,8 +23,10 @@ ESLint here checks code quality only; formatting belongs to Prettier, run separa
 with Prettier is enabled, so you don't need `eslint-config-prettier` on top of these
 presets. `tests/prettier-compat.test.ts` enforces that.
 
-Run `eslint --fix` before `prettier --write` (e.g. in lint-staged): some autofixes, such
-as the braces `curly` adds, are left for Prettier to format.
+Keep `eslint` out of pre-commit hooks: a lint error is a finding to act on, and a fix applied at
+commit time lands in the repository unseen. Run `eslint` as a `package.json` script and in CI, and
+when you do run `eslint --fix`, run `prettier --write` after it: some autofixes, such as the braces
+`curly` adds, are left for Prettier to format.
 
 ## Usage
 
