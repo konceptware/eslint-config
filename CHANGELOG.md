@@ -1,5 +1,12 @@
 # @konceptware/eslint-config
 
+## 0.4.0
+
+### Minor Changes
+
+- c77b70e: New `/storybook` preset for story files, with `storybookMain` for `.storybook/main.*`. Requires the optional peer `eslint-plugin-storybook`. Every rule is decided explicitly: `context-in-play-function` is off, and `use-storybook-testing-library` runs as `konceptware-storybook/use-storybook-testing-library` without its autofix.
+- f3c1f7f: New `@konceptware/eslint-config/stylelint` export: a Stylelint config rejecting raw `font-size`, `transition-duration` and `z-index` values in favour of design tokens. Requires the new optional peer dependency `stylelint`.
+
 ## 0.3.0
 
 ### Minor Changes
