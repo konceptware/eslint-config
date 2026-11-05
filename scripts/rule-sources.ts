@@ -9,6 +9,7 @@ import jestPlugin from 'eslint-plugin-jest'
 import jsxA11y from 'eslint-plugin-jsx-a11y-x'
 import playwrightPlugin from 'eslint-plugin-playwright'
 import reactHooks from 'eslint-plugin-react-hooks'
+import storybookPlugin from 'eslint-plugin-storybook'
 import tseslint from 'typescript-eslint'
 
 import base from '../src/index.ts'
@@ -16,10 +17,18 @@ import jest from '../src/jest.ts'
 import { konceptwarePlaywright } from '../src/playwright-plugin.ts'
 import playwright from '../src/playwright.ts'
 import reactPreset from '../src/react.ts'
+import { konceptwareStorybook } from '../src/storybook-plugin.ts'
+import storybook, { storybookMain } from '../src/storybook.ts'
 import { konceptwareVitest } from '../src/vitest-plugin.ts'
 import vitest from '../src/vitest.ts'
 
-import { E2E_TEST_FILES, UNIT_TEST_FILES, scoped } from './eslint-for.ts'
+import {
+  E2E_TEST_FILES,
+  STORYBOOK_MAIN_FILES,
+  STORY_FILES,
+  UNIT_TEST_FILES,
+  scoped,
+} from './eslint-for.ts'
 
 export type RuleSource = {
   /** Key in `REVIEWED_SOURCES` and the `docs/rules/<name>.md` file name. */
@@ -122,6 +131,21 @@ export const SOURCES: RuleSource[] = [
     sample: 'e2e/page.e2e.ts',
   },
   {
+    name: 'storybook',
+    prefix: 'storybook/',
+    rules: rulesOf(storybookPlugin),
+    // Story files decide every rule, `no-uninstalled-addons` as off; `storybookMain` turns it on.
+    config: [...scoped(STORY_FILES, storybook), ...scoped(STORYBOOK_MAIN_FILES, storybookMain)],
+    sample: 'src/button.stories.tsx',
+  },
+  {
+    name: 'konceptware-storybook',
+    prefix: 'konceptware-storybook/',
+    rules: rulesOf(konceptwareStorybook),
+    config: scoped(STORY_FILES, storybook),
+    sample: 'src/button.stories.tsx',
+  },
+  {
     name: 'react',
     prefix: '@eslint-react/',
     rules: rulesOf(react),
@@ -160,6 +184,8 @@ export const REVIEWED_SOURCES: ReadonlySet<string> = new Set([
   'jest',
   'playwright',
   'konceptware-playwright',
+  'storybook',
+  'konceptware-storybook',
   'react',
   'react-hooks',
   'jsx-a11y',

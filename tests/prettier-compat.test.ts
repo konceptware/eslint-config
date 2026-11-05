@@ -2,11 +2,19 @@ import stylistic from '@stylistic/eslint-plugin'
 import prettierConflicts from 'eslint-config-prettier'
 import { describe, expect, it } from 'vitest'
 
-import { E2E_TEST_FILES, UNIT_TEST_FILES, resolvedConfig, scoped } from '../scripts/eslint-for.ts'
+import {
+  E2E_TEST_FILES,
+  STORYBOOK_MAIN_FILES,
+  STORY_FILES,
+  UNIT_TEST_FILES,
+  resolvedConfig,
+  scoped,
+} from '../scripts/eslint-for.ts'
 import base from '../src/index.ts'
 import jest from '../src/jest.ts'
 import playwright from '../src/playwright.ts'
 import react from '../src/react.ts'
+import storybook, { storybookMain } from '../src/storybook.ts'
 import test from '../src/test.ts'
 import vitest from '../src/vitest.ts'
 
@@ -27,7 +35,14 @@ const UNLISTED_CONFLICTS = [
   '@stylistic/exp-list-style',
 ]
 
-const FILES = ['src/non-null.ts', 'src/non-null.test.ts', 'src/missing-deps.tsx', 'e2e/page.e2e.ts']
+const FILES = [
+  'src/non-null.ts',
+  'src/non-null.test.ts',
+  'src/missing-deps.tsx',
+  'e2e/page.e2e.ts',
+  'src/button.stories.tsx',
+  '.storybook/main.ts',
+]
 
 describe('prettier compatibility', () => {
   it('lists only rules that exist in @stylistic', () => {
@@ -42,6 +57,8 @@ describe('prettier compatibility', () => {
       ...react,
       ...scoped(UNIT_TEST_FILES, test, vitest, jest),
       ...scoped(E2E_TEST_FILES, test, playwright),
+      ...scoped(STORY_FILES, test, storybook),
+      ...scoped(STORYBOOK_MAIN_FILES, storybookMain),
     ]
     const resolved = await resolvedConfig(config, file)
     const enabled = Object.entries(resolved.rules ?? {})

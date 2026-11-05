@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   E2E_TEST_FILES,
+  STORYBOOK_MAIN_FILES,
+  STORY_FILES,
   UNIT_TEST_FILES,
   eslintFor,
   lintSnippet,
@@ -18,6 +20,7 @@ import base from '../src/index.ts'
 import jest from '../src/jest.ts'
 import playwright from '../src/playwright.ts'
 import react from '../src/react.ts'
+import storybook, { storybookMain } from '../src/storybook.ts'
 import test from '../src/test.ts'
 import vitest from '../src/vitest.ts'
 
@@ -26,6 +29,8 @@ const all = [
   ...react,
   ...scoped(UNIT_TEST_FILES, test, vitest),
   ...scoped(E2E_TEST_FILES, test, playwright),
+  ...scoped(STORY_FILES, test, storybook),
+  ...scoped(STORYBOOK_MAIN_FILES, storybookMain),
 ]
 const FILES = [
   'src/non-null.ts',
@@ -33,6 +38,8 @@ const FILES = [
   'src/focused.test.ts',
   'src/missing-deps.tsx',
   'e2e/page.e2e.ts',
+  'src/button.stories.tsx',
+  '.storybook/main.ts',
 ]
 
 async function pluginsFor(config: Linter.Config[], file: string): Promise<string[]> {
@@ -52,6 +59,8 @@ describe('presets', () => {
     { name: 'vitest', preset: vitest },
     { name: 'jest', preset: jest },
     { name: 'playwright', preset: playwright },
+    { name: 'storybook', preset: storybook },
+    { name: 'storybookMain', preset: storybookMain },
   ])('$name sets no file globs beyond the TS-only split', ({ preset }) => {
     const globs = preset.flatMap((block) => [
       ...(block.files ?? []).flat(),
@@ -65,6 +74,7 @@ describe('presets', () => {
     { plugin: 'vitest', preset: vitest, hit: 'src/focused.test.ts', miss: 'src/non-null.ts' },
     { plugin: 'jest', preset: jest, hit: 'src/focused.test.ts', miss: 'src/non-null.ts' },
     { plugin: 'playwright', preset: playwright, hit: 'e2e/page.e2e.ts', miss: 'src/non-null.ts' },
+    { plugin: 'storybook', preset: storybook, hit: 'e2e/page.e2e.ts', miss: 'src/non-null.ts' },
   ])('$plugin applies only where the consumer scopes it', async ({ plugin, preset, hit, miss }) => {
     const config = [...base, ...scoped(['src/focused.test.ts', 'e2e/**'], preset)]
 
@@ -165,6 +175,18 @@ describe('presets', () => {
     // An `'off'` override keeps the options base set, so only the severity is compared.
     expect(severity(rules['@typescript-eslint/unbound-method'])).toBe('off')
     expect(rules['jest/unbound-method']).toStrictEqual([2, { ignoreStatic: false }])
+  })
+
+  it('storybook runs its story rules on stories only and its addon rule on main only', async () => {
+    const stories = await resolvedRules(all, 'src/button.stories.tsx')
+    const main = await resolvedRules(all, '.storybook/main.ts')
+
+    expect(severity(stories['storybook/story-exports'])).toBe('error')
+    expect(severity(stories['storybook/no-uninstalled-addons'])).toBe('off')
+    expect(severity(main['storybook/no-uninstalled-addons'])).toBe('error')
+    expect(Object.keys(main).filter((id) => id.startsWith('storybook/'))).toStrictEqual([
+      'storybook/no-uninstalled-addons',
+    ])
   })
 
   it('playwright coexists with a consumer registering eslint-plugin-playwright', async () => {

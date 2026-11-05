@@ -6,9 +6,14 @@ import { defineConfig } from 'eslint/config'
 
 export const FIXTURE_DIR = fileURLToPath(new URL('../tests/fixtures/project', import.meta.url))
 
-// The fixture project's layout: unit tests sit next to the sources, e2e specs under `e2e/`.
+/*
+ * The fixture project's layout: unit tests and stories sit next to the sources, e2e specs
+ * under `e2e/`.
+ */
 export const UNIT_TEST_FILES = ['src/**/*.{test,spec}.{ts,tsx,mts,cts,js,jsx,mjs,cjs}']
 export const E2E_TEST_FILES = ['e2e/**/*.{ts,js,mts,mjs}']
+export const STORY_FILES = ['src/**/*.stories.{ts,tsx}']
+export const STORYBOOK_MAIN_FILES = ['.storybook/main.ts']
 
 /** `presets` limited to `files`, the way a consumer scopes the file-agnostic presets. */
 export function scoped(files: string[], ...presets: Linter.Config[][]): Linter.Config[] {

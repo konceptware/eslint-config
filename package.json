@@ -1,7 +1,7 @@
 {
   "name": "@konceptware/eslint-config",
   "version": "0.3.0",
-  "description": "Konceptware's shared ESLint flat configs: prod, test, vitest, jest, playwright, react.",
+  "description": "Konceptware's shared ESLint flat configs: prod, test, vitest, jest, playwright, react, storybook.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -47,6 +47,11 @@
       "import": "./dist/react.mjs",
       "default": "./dist/react.mjs"
     },
+    "./storybook": {
+      "types": "./dist/storybook.d.mts",
+      "import": "./dist/storybook.mjs",
+      "default": "./dist/storybook.mjs"
+    },
     "./package.json": "./package.json"
   },
   "engines": {
@@ -78,6 +83,7 @@
     "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "eslint-plugin-playwright": "^2.12.0",
     "eslint-plugin-react-hooks": "^7.1.0",
+    "eslint-plugin-storybook": "^10.6.0",
     "typescript": ">=5.0.0 <6.1.0"
   },
   "peerDependenciesMeta": {
@@ -97,6 +103,9 @@
       "optional": true
     },
     "eslint-plugin-jsx-a11y-x": {
+      "optional": true
+    },
+    "eslint-plugin-storybook": {
       "optional": true
     }
   },
@@ -124,6 +133,7 @@
     "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "eslint-plugin-playwright": "^2.12.0",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-storybook": "^10.6.5",
     "jiti": "^2.7.0",
     "prettier": "^3.9.10",
     "tsdown": "^0.23.1",

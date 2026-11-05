@@ -149,6 +149,42 @@ export default [
   - `no-useless-await`: strips the `await` from page-object methods named like locator ones.
   - `no-unsafe-references`: writes duplicate or shifted `page.evaluate` arguments.
 
+### Storybook
+
+Requires `eslint-plugin-storybook`. Story files take `/test` too, since they import
+devDependencies; `.storybook/main.*` takes `storybookMain`, because the story rules would
+report a file without stories:
+
+```js
+import storybook, { storybookMain } from '@konceptware/eslint-config/storybook'
+
+export default defineConfig([
+  // …
+  { files: ['src/**/*.stories.tsx'], extends: [test, storybook] },
+  { files: ['.storybook/main.ts'], extends: [storybookMain] },
+])
+```
+
+- Cover `.storybook` in your tsconfig by naming it: `"include": ["src", ".storybook/*.ts"]`.
+  TypeScript's globs skip dot-directories, so `".storybook"` alone matches nothing and the
+  type-aware rules fail with "not found by the project service".
+- Type the meta with `satisfies` (`const meta = { … } satisfies Meta<typeof Button>`), and set
+  no `title`: autotitle derives the sidebar path from the file's location.
+- Write `play` as a method, `async play({ canvasElement }) {…}`; `object-shorthand` reports
+  the arrow form. `storybook/context-in-play-function` is off because it misreads the method
+  form; on a `StoryObj`-typed story tsc reports a `play` reused without its context.
+- `storybook/await-interactions` only recognises the legacy `@storybook/test` import, so with
+  `storybook/test` it stays silent. In TS, `@typescript-eslint/no-floating-promises` reports an
+  un-awaited interaction instead.
+- `use-storybook-testing-library` is re-registered as `konceptware-storybook/*` without its
+  autofix, which swaps any `@testing-library/*` import for `storybook/test`, including names
+  such as `render` that `storybook/test` doesn't export. The suggestion to switch remains.
+- `storybook/no-uninstalled-addons` reads `./package.json` relative to the directory ESLint
+  runs from. In a monorepo linted from the root, pass your package's path:
+  `['error', { packageJsonLocation: 'apps/web/package.json', ignore: [] }]`. It only checks
+  addons written as strings or `{ name }` objects; one wrapped in `getAbsolutePath(…)` is
+  skipped.
+
 ### React
 
 - On React 19 and later, pass `ref` as a prop; `forwardRef` is reported
