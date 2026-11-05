@@ -7,14 +7,15 @@ and purpose.
 
 ## Presets
 
-| Import                                  | Use for                                 | Extra peer dependencies                                                                |
-| --------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
-| `@konceptware/eslint-config`            | Prod code (TS/JS, type-aware)           | —                                                                                      |
-| `@konceptware/eslint-config/test`       | Relaxations of the prod rules for tests | —                                                                                      |
-| `@konceptware/eslint-config/vitest`     | Vitest rules                            | `@vitest/eslint-plugin`                                                                |
-| `@konceptware/eslint-config/jest`       | Jest rules                              | `eslint-plugin-jest`                                                                   |
-| `@konceptware/eslint-config/playwright` | Playwright rules                        | `eslint-plugin-playwright`                                                             |
-| `@konceptware/eslint-config/react`      | React components and hooks              | `@eslint-react/eslint-plugin`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y-x` |
+| Import                                  | Use for                                            | Extra peer dependencies                                                                |
+| --------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `@konceptware/eslint-config`            | Prod code (TS/JS, type-aware)                      | —                                                                                      |
+| `@konceptware/eslint-config/test`       | Relaxations of the prod rules for tests            | —                                                                                      |
+| `@konceptware/eslint-config/vitest`     | Vitest rules                                       | `@vitest/eslint-plugin`                                                                |
+| `@konceptware/eslint-config/jest`       | Jest rules                                         | `eslint-plugin-jest`                                                                   |
+| `@konceptware/eslint-config/playwright` | Playwright rules                                   | `eslint-plugin-playwright`                                                             |
+| `@konceptware/eslint-config/react`      | React components and hooks                         | `@eslint-react/eslint-plugin`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y-x` |
+| `@konceptware/eslint-config/stylelint`  | Design-token values in CSS (Stylelint, not ESLint) | `stylelint`                                                                            |
 
 ## Formatting
 
@@ -217,6 +218,30 @@ export default defineConfig([
   take a disable comment with their reason: `<canvas role="img" aria-label="…">` for a
   chart, a hand-built `<ul role="listbox">`, and a focusable scroll region. So does
   `autoFocus` on the first field of a dialog (`jsx-a11y-x/no-autofocus`).
+
+### Stylelint
+
+`/stylelint` is a Stylelint config, not an ESLint one: extend it from your Stylelint config.
+It sets one rule, `declaration-property-value-disallowed-list`, which rejects raw
+`font-size` (`rem`, `px`), `transition-duration` (`ms`, `s`) and `z-index` (integer) values,
+so they come from design tokens (`var(--…)`). Unlike the ESLint presets it decides nothing
+else: add `stylelint-config-standard` or your own rules alongside it.
+
+```json
+{
+  "extends": ["@konceptware/eslint-config/stylelint"],
+  "rules": { "custom-property-pattern": "^ie-[a-z0-9-]+$" },
+  "overrides": [
+    {
+      "files": ["src/styles/ui-tokens.css"],
+      "rules": { "declaration-property-value-disallowed-list": null }
+    }
+  ]
+}
+```
+
+Setting `declaration-property-value-disallowed-list` yourself replaces ours rather than
+adding to it, so restate these three properties when you add your own.
 
 ## Developing
 

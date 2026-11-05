@@ -9,6 +9,7 @@ export default defineConfig({
     'src/playwright.ts',
     'src/react.ts',
     'src/storybook.ts',
+    'src/stylelint.ts',
   ],
   format: 'esm',
   platform: 'node',
