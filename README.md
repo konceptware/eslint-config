@@ -7,15 +7,15 @@ and purpose.
 
 ## Presets
 
-| Import                                  | Use for                                            | Extra peer dependencies                                                                |
-| --------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `@konceptware/eslint-config`            | Prod code (TS/JS, type-aware)                      | —                                                                                      |
-| `@konceptware/eslint-config/test`       | Relaxations of the prod rules for tests            | —                                                                                      |
-| `@konceptware/eslint-config/vitest`     | Vitest rules                                       | `@vitest/eslint-plugin`                                                                |
-| `@konceptware/eslint-config/jest`       | Jest rules                                         | `eslint-plugin-jest`                                                                   |
-| `@konceptware/eslint-config/playwright` | Playwright rules                                   | `eslint-plugin-playwright`                                                             |
-| `@konceptware/eslint-config/react`      | React components and hooks                         | `@eslint-react/eslint-plugin`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y-x` |
-| `@konceptware/eslint-config/stylelint`  | Design-token values in CSS (Stylelint, not ESLint) | `stylelint`                                                                            |
+| Import                                  | Use for                                                          | Extra peer dependencies                                                                |
+| --------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `@konceptware/eslint-config`            | Prod code (TS/JS, type-aware)                                    | —                                                                                      |
+| `@konceptware/eslint-config/test`       | Relaxations of the prod rules for tests                          | —                                                                                      |
+| `@konceptware/eslint-config/vitest`     | Vitest rules                                                     | `@vitest/eslint-plugin`                                                                |
+| `@konceptware/eslint-config/jest`       | Jest rules                                                       | `eslint-plugin-jest`                                                                   |
+| `@konceptware/eslint-config/playwright` | Playwright rules                                                 | `eslint-plugin-playwright`                                                             |
+| `@konceptware/eslint-config/react`      | React components and hooks                                       | `@eslint-react/eslint-plugin`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y-x` |
+| `@konceptware/eslint-config/stylelint`  | CSS for UI packages: tokens, CSS modules (Stylelint, not ESLint) | `stylelint`                                                                            |
 
 ## Formatting
 
@@ -221,27 +221,43 @@ export default defineConfig([
 
 ### Stylelint
 
-`/stylelint` is a Stylelint config, not an ESLint one: extend it from your Stylelint config.
-It sets one rule, `declaration-property-value-disallowed-list`, which rejects raw
-`font-size` (`rem`, `px`), `transition-duration` (`ms`, `s`) and `z-index` (integer) values,
-so they come from design tokens (`var(--…)`). Unlike the ESLint presets it decides nothing
-else: add `stylelint-config-standard` or your own rules alongside it.
+`/stylelint` is a Stylelint config, not an ESLint one. For a CSS-modules UI package, build the
+whole config with `createStylelintConfig` in `stylelint.config.js`:
 
-```json
-{
-  "extends": ["@konceptware/eslint-config/stylelint"],
-  "rules": { "custom-property-pattern": "^ie-[a-z0-9-]+$" },
-  "overrides": [
+```js
+import { createStylelintConfig } from '@konceptware/eslint-config/stylelint'
+
+const base = createStylelintConfig({ tokenPrefix: 'ie' })
+
+export default {
+  ...base,
+  overrides: [
     {
-      "files": ["src/styles/ui-tokens.css"],
-      "rules": { "declaration-property-value-disallowed-list": null }
-    }
-  ]
+      files: ['src/styles/ui-tokens.css'],
+      rules: { 'custom-property-pattern': null },
+    },
+  ],
 }
 ```
 
-Setting `declaration-property-value-disallowed-list` yourself replaces ours rather than
-adding to it, so restate these three properties when you add your own.
+It gives you:
+
+- `stylelint-config-standard`, installed with this package. Unlike the ESLint presets, this
+  inherits a shared set, so a `stylelint-config-standard` upgrade can change what is reported.
+- Raw `font-size` (`rem`, `px`), `transition-duration` (`ms`, `s`) and `z-index` (integer) values
+  rejected, so they come from design tokens (`var(--…)`).
+- Custom properties named `--<tokenPrefix>-…`. `tokenPrefix` is lowercase kebab-case; anything
+  else throws.
+- CSS modules: camelCase class names and `:global(…)` are allowed.
+- Off: `no-descending-specificity`, `comment-empty-line-before`,
+  `custom-property-empty-line-before`.
+
+A `rules` key of your own replaces ours, so merge: `rules: { ...base.rules, 'color-named': 'never' }`.
+Setting `declaration-property-value-disallowed-list` replaces our list, so restate the three
+properties when you add your own.
+
+The default export is the token rule alone, for `"extends": ["@konceptware/eslint-config/stylelint"]`
+in a JSON config that brings its own rules.
 
 ## Developing
 
