@@ -820,11 +820,11 @@ describeRules(base, 'src/lint-text.ts', [
     rule: 'object-shorthand',
     invalid: [
       'export const obj = { property: function () {\n  return 1\n} }\n',
-      'export const obj = { property: () => {\n  return 1\n} }\n',
       'const property = 1\nexport const obj = { property: property }\n',
     ],
     valid: [
       'export const obj = {\n  property() {\n    return 1\n  },\n}\n',
+      'export const obj = { property: () => {\n  return 1\n} }\n',
       'function foo() {\n  return 1\n}\nexport const obj = { property: foo }\n',
       'function property() {\n  return 1\n}\nexport const obj = { property }\n',
       'export const obj = {\n  "my-key": function () {\n    return 1\n  },\n}\n',

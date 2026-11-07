@@ -173,9 +173,9 @@ export default defineConfig([
   type-aware rules fail with "not found by the project service".
 - Type the meta with `satisfies` (`const meta = { … } satisfies Meta<typeof Button>`), and set
   no `title`: autotitle derives the sidebar path from the file's location.
-- Write `play` as a method, `async play({ canvasElement }) {…}`; `object-shorthand` reports
-  the arrow form. `storybook/context-in-play-function` is off because it misreads the method
-  form; on a `StoryObj`-typed story tsc reports a `play` reused without its context.
+- `storybook/context-in-play-function` is off because it misreads a `play` method,
+  `async play({ canvasElement }) {…}`, as taking no context; on a `StoryObj`-typed story tsc
+  reports a `play` reused without its context.
 - `storybook/await-interactions` only recognises the legacy `@storybook/test` import, so with
   `storybook/test` it stays silent. In TS, `@typescript-eslint/no-floating-promises` reports an
   un-awaited interaction instead.

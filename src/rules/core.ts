@@ -383,8 +383,12 @@ export const coreRules: Linter.RulesRecord = {
       // A quoted key such as `'my-key'` keeps the long form.
       avoidQuotes: true,
       ignoreConstructors: false,
-      // An arrow that uses `this` is left alone; as a method, `this` would change meaning.
-      avoidExplicitReturnArrows: true,
+      /*
+       * A block-bodied arrow stays an arrow: as a method it gains its own `this`, so
+       * `unbound-method` reports it wherever it is destructured or passed on, such as a hook's
+       * returned handlers.
+       */
+      avoidExplicitReturnArrows: false,
     },
   ],
   'one-var': ['error', 'never'],

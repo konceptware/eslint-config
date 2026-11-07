@@ -10,8 +10,8 @@ export const storybookRules: Linter.RulesRecord = {
   'storybook/await-interactions': 'error',
   /*
    * Reported by tsc on a `StoryObj`-typed story: `play` takes a required context. The rule only
-   * finds the context parameter on an arrow function, so it reports the method shorthand
-   * `object-shorthand` requires even when the context is passed.
+   * finds the context parameter on an arrow function, so it reports a `play` method even when
+   * the context is passed.
    */
   'storybook/context-in-play-function': 'off',
   // A story without one component (a composition) takes a disable with its reason.
