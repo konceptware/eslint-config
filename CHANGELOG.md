@@ -1,5 +1,11 @@
 # @konceptware/eslint-config
 
+## 0.6.1
+
+### Patch Changes
+
+- 2ea8975: The README documents how releases are published: only the Release workflow publishes, through npm trusted publishing, so every version carries provenance.
+
 ## 0.6.0
 
 ### Minor Changes
