@@ -29,6 +29,13 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      # A PR opened with the default GITHUB_TOKEN triggers no workflows, so CI would never run on
+      # the version PR; the release app's token does trigger them.
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       # Opens a "Version packages" PR while changesets are pending; publishes when that PR is merged.
       # v2 reads published versions from CHANGESETS_OUTPUT; v1 parses `New tag:` log lines, which
       # @changesets/cli 3 no longer prints, so it pushed no tags and created no GitHub releases.
@@ -36,3 +43,4 @@ jobs:
         with:
           version-script: pnpm changeset version
           publish-script: pnpm release
+          github-token: ${{ steps.app-token.outputs.token }}
