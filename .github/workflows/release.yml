@@ -30,9 +30,9 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       # Opens a "Version packages" PR while changesets are pending; publishes when that PR is merged.
-      - uses: changesets/action@v1
+      # v2 reads published versions from CHANGESETS_OUTPUT; v1 parses `New tag:` log lines, which
+      # @changesets/cli 3 no longer prints, so it pushed no tags and created no GitHub releases.
+      - uses: changesets/action@v2
         with:
-          version: pnpm changeset version
-          publish: pnpm release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version-script: pnpm changeset version
+          publish-script: pnpm release
