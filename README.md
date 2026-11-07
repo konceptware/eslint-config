@@ -271,3 +271,10 @@ in a JSON config that brings its own rules.
 Rule decisions live in `src/rules/*.ts`, one module per rule source. Comments use the names in `docs/terminology.md`. When a source is
 fully reviewed, add it to `REVIEWED_SOURCES` in `scripts/rule-sources.ts`; from then on
 a rule the plugin adds without a decision fails the coverage test.
+
+### Releasing
+
+Only the Release workflow publishes. It uses npm trusted publishing, so every version carries
+provenance. A changeset pushed to `main` opens a "Version packages" PR, and merging that PR
+publishes the version and tags it. Never run `pnpm publish` or `changeset publish` locally: a
+local publish has no provenance and races the workflow.

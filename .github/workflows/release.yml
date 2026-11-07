@@ -24,6 +24,11 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
+      # Repeats ci.yml's checks: that workflow runs in parallel and cannot stop a publish.
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
       # Opens a "Version packages" PR while changesets are pending; publishes when that PR is merged.
       - uses: changesets/action@v1
         with:
